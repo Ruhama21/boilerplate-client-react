@@ -1,41 +1,43 @@
-import { faCamera, faContactCard, faGear, faLanguage, faUnlockKeyhole } from '@fortawesome/free-solid-svg-icons';
+import { faCamera, faContactCard, faGear, faLanguage } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { handleApiError, isFetchBaseQueryError } from 'common/api/handleApiError';
 import {
   ChangePasswordRequest,
   useChangePasswordMutation,
   useForgotPasswordMutation,
-  useResendChangeEmailVerificationEmailMutation,
+  useResendChangeEmailVerificationEmailMutation
 } from 'common/api/userApi';
 import { LoadingButton } from 'common/components/LoadingButton';
 import { LoadingSpinner } from 'common/components/LoadingSpinner';
 import { isObject } from 'common/error/utilities';
+import useQuery from 'common/hooks/useQuery';
 import { ServerValidationErrors } from 'common/models';
 import * as notificationService from 'common/services/notification';
 import { PageHeader } from 'common/styles/page';
 import { useAuth } from 'features/auth/hooks';
+import { MySubscription } from 'features/memberships/MySubscription';
 import { UserProfileImg } from 'features/navbar/components/UserProfilePicture';
 import { useTheme } from 'features/themes/useTheme';
 import {
   ChangePasswordForm,
-  FormData as ForgotPasswordFormData,
+  FormData as ForgotPasswordFormData
 } from 'features/user-dashboard/components/ChangePasswordForm';
 import {
   useCancelChangeEmailRequest,
   useChangeEmailRequest,
   useDeleteProfilePicture,
   useUpdateProfilePicture,
-  useUpdateUserProfile,
+  useUpdateUserProfile
 } from 'features/user-profile/hooks';
 import { languages } from 'i18n/config';
-import { FC, useRef, useState } from 'react';
+import { FC, useEffect, useRef, useState } from 'react';
 import { Alert, Card, Col, Container, Form, Modal, Nav, OverlayTrigger, Row, Tooltip } from 'react-bootstrap';
 import Button from 'react-bootstrap/Button';
 import Dropdown from 'react-bootstrap/Dropdown';
 import DropdownButton from 'react-bootstrap/DropdownButton';
 import { Trans, useTranslation } from 'react-i18next';
 import { useModal } from 'react-modal-hook';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import styled from 'styled-components';
 import { Constants } from 'utils/constants';
 import { UpdateUserEmailForm, UserEmailFormData } from '../components/UpdateUserEmailForm';
@@ -134,6 +136,20 @@ export const UserProfilePage: FC = () => {
     useState<ServerValidationErrors<ForgotPasswordFormData> | null>(null);
   const { i18n } = useTranslation();
   const { toggleTheme, theme } = useTheme();
+  const navigate = useNavigate();
+  const query = useQuery();
+
+  useEffect(() => {
+    const newTab = query.get('tab');
+    if (newTab) setTab(newTab);
+  }, [query]);
+
+  const changeTab = (tab: string) => {
+    const search = new URLSearchParams(window.location.search);
+    search.set('tab', tab);
+    navigate({ search: search.toString() });
+    setTab(tab);
+  };
 
   const onSubmit = async (formData: ProfileFormData) => {
     const data = { id, ...formData };
@@ -281,9 +297,14 @@ export const UserProfilePage: FC = () => {
               <FontAwesomeIcon className='me-2' icon={faContactCard} />
               <Trans i18nKey='userProfile.profile'>Profile</Trans>
             </ProfileNav.Link>
-            <ProfileNav.Link onClick={() => setTab('security')} className={tab === 'security' ? 'active' : ''}>
-              <FontAwesomeIcon className='me-2' icon={faUnlockKeyhole} />
+            <ProfileNav.Link onClick={() => changeTab('security')} className={tab === 'security' ? 'active' : ''}>
               <Trans i18nKey='userProfile.security'>Security and Password</Trans>
+            </ProfileNav.Link>
+            <ProfileNav.Link
+              onClick={() => changeTab('subscription')}
+              className={tab === 'subscription' ? 'active' : ''}
+            >
+              <Trans i18nKey='userProfile.subscription'>Subscription</Trans>
             </ProfileNav.Link>
           </ProfileNav>
         </Col>
@@ -518,6 +539,7 @@ export const UserProfilePage: FC = () => {
           ) : (
             ''
           )}
+          {tab === 'subscription' ? <MySubscription /> : ''}
         </Col>
       </Row>
     </Container>
