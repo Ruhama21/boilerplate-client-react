@@ -1,11 +1,18 @@
-import { faCamera, faContactCard, faGear, faLanguage } from '@fortawesome/free-solid-svg-icons';
+import {
+  faCamera,
+  faContactCard,
+  faCreditCard,
+  faGear,
+  faLanguage,
+  faUnlockKeyhole,
+} from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { handleApiError, isFetchBaseQueryError } from 'common/api/handleApiError';
 import {
   ChangePasswordRequest,
   useChangePasswordMutation,
   useForgotPasswordMutation,
-  useResendChangeEmailVerificationEmailMutation
+  useResendChangeEmailVerificationEmailMutation,
 } from 'common/api/userApi';
 import { LoadingButton } from 'common/components/LoadingButton';
 import { LoadingSpinner } from 'common/components/LoadingSpinner';
@@ -20,14 +27,14 @@ import { UserProfileImg } from 'features/navbar/components/UserProfilePicture';
 import { useTheme } from 'features/themes/useTheme';
 import {
   ChangePasswordForm,
-  FormData as ForgotPasswordFormData
+  FormData as ForgotPasswordFormData,
 } from 'features/user-dashboard/components/ChangePasswordForm';
 import {
   useCancelChangeEmailRequest,
   useChangeEmailRequest,
   useDeleteProfilePicture,
   useUpdateProfilePicture,
-  useUpdateUserProfile
+  useUpdateUserProfile,
 } from 'features/user-profile/hooks';
 import { languages } from 'i18n/config';
 import { FC, useEffect, useRef, useState } from 'react';
@@ -298,12 +305,14 @@ export const UserProfilePage: FC = () => {
               <Trans i18nKey='userProfile.profile'>Profile</Trans>
             </ProfileNav.Link>
             <ProfileNav.Link onClick={() => changeTab('security')} className={tab === 'security' ? 'active' : ''}>
+              <FontAwesomeIcon className='me-2' icon={faUnlockKeyhole} />
               <Trans i18nKey='userProfile.security'>Security and Password</Trans>
             </ProfileNav.Link>
             <ProfileNav.Link
               onClick={() => changeTab('subscription')}
               className={tab === 'subscription' ? 'active' : ''}
             >
+              <FontAwesomeIcon className='me-2' icon={faCreditCard} />
               <Trans i18nKey='userProfile.subscription'>Subscription</Trans>
             </ProfileNav.Link>
           </ProfileNav>
