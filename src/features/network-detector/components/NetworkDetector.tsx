@@ -1,35 +1,33 @@
-import { FC, PropsWithChildren, useEffect, useRef, useState } from 'react';
+import { FC, PropsWithChildren } from 'react';
 import * as notificationService from 'common/services/notification';
+import styled from 'styled-components';
+import { getRandomNumber, useNetworkDetection } from '../hooks/useNetworkConnection';
+
+const InteractionBarrier = styled.div`
+  width: 100vw;
+  height: 100vh;
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 1090;
+`;
 
 export const NetworkDetector: FC<PropsWithChildren<unknown>> = ({ children }) => {
-  const [isDisconnected, setDisconnectedStatus] = useState(false);
-  const prevDisconnectionStatus = useRef(false);
+  const { isDisconnected } = useNetworkDetection();
 
-  const handleConnectionChange = () => {
-    setDisconnectedStatus(!navigator.onLine);
-  };
-
-  const getRandomNumber = () => {
-    return new Date().valueOf().toString();
-  };
-
-  useEffect(() => {
-    window.addEventListener('online', handleConnectionChange);
-    window.addEventListener('offline', handleConnectionChange);
-
-    if (isDisconnected) {
-      notificationService.showErrorMessage('Internet Connection Lost', getRandomNumber());
-    } else if (prevDisconnectionStatus.current) {
-      notificationService.showSuccessMessage('Internet Connection Restored', getRandomNumber());
-    }
-
-    prevDisconnectionStatus.current = isDisconnected;
-
-    return () => {
-      window.removeEventListener('online', handleConnectionChange);
-      window.removeEventListener('offline', handleConnectionChange);
-    };
-  }, [isDisconnected]);
-
-  return <>{children}</>;
+  return (
+    <>
+      {isDisconnected && (
+        <InteractionBarrier
+          onClick={() =>
+            notificationService.showErrorMessage(
+              'You must resolve your internet connectivity issues before you can interact with this app.',
+              getRandomNumber(),
+            )
+          }
+        />
+      )}
+      {children}
+    </>
+  );
 };

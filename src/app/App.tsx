@@ -7,7 +7,6 @@ import { AgentRoutes } from 'features/agent-dashboard';
 import { AuthRoutes, RequireAuth } from 'features/auth';
 import { AppErrorBoundary } from 'features/error-boundary/components/AppErrorBoundary';
 import { NetworkDetector } from 'features/network-detector/components/NetworkDetector';
-import { useNetworkDetection } from 'features/network-detector/hooks/useNetworkConnection';
 import { NotificationsProvider } from 'features/notifications/context';
 import { NotificationRoutes } from 'features/notifications/Routes';
 import { UserRoutes } from 'features/user-dashboard';
@@ -29,7 +28,6 @@ export const ThemeContext = createContext({
 
 export const App: FC = () => {
   const [theme, setTheme] = useState(localStorage.getItem('theme') || 'light');
-  const { isDisconnected } = useNetworkDetection();
 
   const themeProviderValue = useMemo(() => {
     const toggleTheme = () => {
@@ -50,7 +48,7 @@ export const App: FC = () => {
 
   return (
     <AppErrorBoundary>
-      
+      <NetworkDetector>
         <ThemeContext.Provider value={themeProviderValue}>
           <ThemeProvider theme={theme === 'light' ? light : dark}>
             <ModalProvider rootComponent={TransitionGroup}>
@@ -116,7 +114,7 @@ export const App: FC = () => {
             </ModalProvider>
           </ThemeProvider>
         </ThemeContext.Provider>
-      
+      </NetworkDetector>
     </AppErrorBoundary>
   );
 };
