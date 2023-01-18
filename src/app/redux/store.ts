@@ -1,4 +1,5 @@
 import { configureStore, ConfigureStoreOptions } from '@reduxjs/toolkit';
+import { setupListeners } from '@reduxjs/toolkit/query';
 import { agentApi } from 'common/api/agentApi';
 import { authApi } from 'common/api/authApi';
 import { notificationApi } from 'common/api/notificationApi';
@@ -29,6 +30,8 @@ export const createAppStore = (options?: ConfigureStoreOptions['preloadedState']
   });
 
 export const store = createAppStore();
+
+setupListeners(store.dispatch);
 
 export type RootState = ReturnType<typeof store.getState>;
 
