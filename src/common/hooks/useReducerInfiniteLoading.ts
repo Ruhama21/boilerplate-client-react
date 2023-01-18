@@ -1,14 +1,14 @@
-import { notificationApi } from 'common/api/notificationApi';
+import { ActionCreatorWithoutPayload } from '@reduxjs/toolkit';
 import { PaginatedResult } from 'common/models';
 import { useCallback, useEffect, useMemo, useReducer } from 'react';
 import { useDispatch } from 'react-redux';
 import { UseQuery, UseQueryOptions } from 'rtk-query-config';
 
-interface WithStringIdentifier {
-  id: string;
+export interface WithNumberIdentifier {
+  id: number;
 }
 
-interface State<T extends WithStringIdentifier> {
+interface State<T> {
   notifications: T[];
   oldNotifications: T[];
   nextNotificationUrl: string | null;
@@ -16,8 +16,8 @@ interface State<T extends WithStringIdentifier> {
 }
 
 const initialState = {
-  notifications: [],
-  oldNotifications: [],
+  notifications: [] as any[],
+  oldNotifications: [] as any[],
   nextNotificationUrl: null,
   count: 0,
 };
@@ -29,7 +29,7 @@ type Action<T> =
   | { type: 'remove'; notification: T }
   | { type: 'reset' };
 
-const reducer = <T extends WithStringIdentifier>(state: State<T>, action: Action<T>) => {
+const reducer = <T extends WithNumberIdentifier>(state: State<T>, action: Action<T>) => {
   switch (action.type) {
     case 'add':
       return { ...state, notifications: [action.notification, ...state.notifications] };
@@ -57,9 +57,10 @@ const reducer = <T extends WithStringIdentifier>(state: State<T>, action: Action
   }
 };
 
-export const useReducerInfiniteLoading = <T extends WithStringIdentifier, ResultType extends PaginatedResult<T>>(
-  initialUrl: string,
+export const useReducerInfiniteLoading = <T extends WithNumberIdentifier, ResultType extends PaginatedResult<T>>(
+  initialUrl: string | null,
   useQuery: UseQuery<ResultType>,
+  resetApiStateFunction: ActionCreatorWithoutPayload,
   options?: UseQueryOptions,
 ) => {
   const dispatch = useDispatch();
@@ -80,14 +81,17 @@ export const useReducerInfiniteLoading = <T extends WithStringIdentifier, Result
     });
   }, [unreadNotifications]);
 
+  const add = useCallback((newNotification: T) => {
+    notificationDispatch({ type: 'add', notification: newNotification});
+  }, [notificationDispatch]);
+
   const clear = useCallback(() => {
     notificationDispatch({ type: 'reset' });
-    dispatch(notificationApi.util.resetApiState());
-  }, [notificationDispatch, dispatch]);
+    dispatch(resetApiStateFunction()); // before - notificationApi.util.resetApiState()
+  }, [notificationDispatch, dispatch, resetApiStateFunction]);
 
-  const remove = useCallback(
-    (notification: T) => {
-      notificationDispatch({ type: 'remove', notification });
+  const remove = useCallback((notificationToRemove: T) => {
+      notificationDispatch({ type: 'remove', notification: notificationToRemove });
     },
     [notificationDispatch],
   );
@@ -108,9 +112,11 @@ export const useReducerInfiniteLoading = <T extends WithStringIdentifier, Result
       remove,
       clear,
       getMore,
+      refetch,
+      add
     };
     return result;
-  }, [clear, remove, getMore, notifications, unreadNotifications, count, oldNotifications, isFetching, isLoading]);
+  }, [clear, remove, getMore, add, notifications, unreadNotifications, count, oldNotifications, isFetching, isLoading, refetch]);
 
   return notificationProviderValue;
 };
