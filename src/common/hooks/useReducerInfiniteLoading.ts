@@ -1,6 +1,6 @@
 import { ActionCreatorWithoutPayload } from '@reduxjs/toolkit';
 import { PaginatedResult } from 'common/models';
-import { useCallback, useEffect, useMemo, useReducer } from 'react';
+import { useCallback, useEffect, useMemo, useReducer, useRef } from 'react';
 import { useDispatch } from 'react-redux';
 import { UseQuery, UseQueryOptions } from 'rtk-query-config';
 
@@ -57,6 +57,14 @@ const reducer = <T extends WithNumberIdentifier>(state: State<T>, action: Action
   }
 };
 
+const usePrevious = <T>(value: T | null) => {
+  const ref = useRef<T | null>(null);
+  useEffect(() => {
+    ref.current = value;
+  },[value]);
+  return ref.current;
+}
+
 export const useReducerInfiniteLoading = <T extends WithNumberIdentifier, ResultType extends PaginatedResult<T>>(
   initialUrl: string | null,
   useQuery: UseQuery<ResultType>,
@@ -64,6 +72,7 @@ export const useReducerInfiniteLoading = <T extends WithNumberIdentifier, Result
   options?: UseQueryOptions,
 ) => {
   const dispatch = useDispatch();
+  const rerenderingType = useRef<string | null>('clear');
 
   const [{ notifications, oldNotifications, nextNotificationUrl, count }, notificationDispatch] = useReducer(reducer, {
     ...initialState,
@@ -71,21 +80,14 @@ export const useReducerInfiniteLoading = <T extends WithNumberIdentifier, Result
   });
   const { data: unreadNotifications, isFetching, isLoading, refetch } = useQuery(nextNotificationUrl, options);
 
-  // Append new notifications that we got from the API to
-  // oldNotifications list
-  useEffect(() => {
-    notificationDispatch({
-      type: 'add-old',
-      notifications: unreadNotifications?.results || [],
-      count: unreadNotifications?.meta.count || 0,
-    });
-  }, [unreadNotifications]);
+  const previousNextUrl = usePrevious<string | null | undefined>(unreadNotifications?.links.next);
 
   const add = useCallback((newNotification: T) => {
     notificationDispatch({ type: 'add', notification: newNotification});
   }, [notificationDispatch]);
 
   const clear = useCallback(() => {
+    rerenderingType.current = null;
     notificationDispatch({ type: 'reset' });
     dispatch(resetApiStateFunction()); // before - notificationApi.util.resetApiState()
   }, [notificationDispatch, dispatch, resetApiStateFunction]);
@@ -96,17 +98,55 @@ export const useReducerInfiniteLoading = <T extends WithNumberIdentifier, Result
     [notificationDispatch],
   );
 
+  const hasMore = useMemo(() => {
+    if (isLoading || isFetching) return false;
+    return !!unreadNotifications?.links.next;
+  }, [unreadNotifications, isLoading, isFetching]);
+
   const getMore = useCallback(() => {
     if (unreadNotifications?.links.next && !isFetching) {
+      rerenderingType.current = 'fetchMore';
       notificationDispatch({ type: 'set-next-notification-url', nextNotificationUrl: unreadNotifications.links.next });
     }
   }, [notificationDispatch, isFetching, unreadNotifications]);
+
+  useEffect(() => {
+
+    console.log('isLoading:', isLoading);
+    console.log('isFetching:', isFetching);
+    console.log('previousNextUrl:', previousNextUrl);
+    console.log('nextNotificationUrl:', unreadNotifications?.links.next);
+
+    // Clear the notifications if the user's connection has been restored
+    if (!isLoading && isFetching && previousNextUrl !== undefined && previousNextUrl === unreadNotifications?.links.next) {
+      clear();
+    }
+  }, [clear, isLoading, isFetching, previousNextUrl, unreadNotifications]);
+
+  // Append new notifications that we got from the API to
+  // oldNotifications list
+  useEffect(() => {
+    
+    notificationDispatch({
+      type: 'add-old',
+      notifications: unreadNotifications?.results || [],
+      count: unreadNotifications?.meta.count || 0,
+    });
+
+    console.log('unreadNotifications:', unreadNotifications?.results || []);
+
+    return () => {
+      if (rerenderingType.current === 'clear') {
+        clear();
+      }
+    };
+  }, [unreadNotifications, clear]);
 
   const notificationProviderValue = useMemo(() => {
     const result = {
       notifications: [...notifications, ...oldNotifications],
       count: notifications.length + count, // I'm not so sure this is right.
-      hasMore: !!unreadNotifications?.links.next,
+      hasMore,
       isFetching,
       isLoading,
       remove,
@@ -116,7 +156,7 @@ export const useReducerInfiniteLoading = <T extends WithNumberIdentifier, Result
       add
     };
     return result;
-  }, [clear, remove, getMore, add, notifications, unreadNotifications, count, oldNotifications, isFetching, isLoading, refetch]);
+  }, [clear, remove, hasMore, getMore, add, notifications, count, oldNotifications, isFetching, isLoading, refetch]);
 
   return notificationProviderValue;
 };
