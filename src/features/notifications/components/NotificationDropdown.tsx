@@ -1,7 +1,7 @@
 import { FC, useContext } from 'react';
 import { Button, CloseButton, Nav, Row, Tab } from 'react-bootstrap';
 import styled from 'styled-components';
-import { notificationApi, useGetReadNotificationsQuery, useMarkAllReadMutation } from 'common/api/notificationApi';
+import { useGetReadNotificationsQuery, useMarkAllReadMutation } from 'common/api/notificationApi';
 import { renderNotification } from './renderNotification';
 import { NotificationContext } from '../context';
 import { useNavigate } from 'react-router-dom';
@@ -142,7 +142,6 @@ interface Props {
 
 export const NotificationDropdown: FC<Props> = ({ onClose }) => {
   const navigate = useNavigate();
-  const dispatch = useDispatch();
   const {
     notifications: unreadNotifications,
     isLoading: isLoadingUnreadNotifications,
@@ -163,8 +162,6 @@ export const NotificationDropdown: FC<Props> = ({ onClose }) => {
   };
 
   const handleClose = () => {
-    dispatch(notificationApi.util.resetApiState());
-    clearUnreadNotifications();
     onClose();
   };
 

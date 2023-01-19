@@ -110,6 +110,8 @@ export const useReducerInfiniteLoading = <T extends WithNumberIdentifier, Result
     }
   }, [notificationDispatch, isFetching, unreadNotifications]);
 
+  console.log('rerenderingType.current:', rerenderingType.current);
+
   useEffect(() => {
 
     console.log('isLoading:', isLoading);
@@ -120,6 +122,7 @@ export const useReducerInfiniteLoading = <T extends WithNumberIdentifier, Result
     // Clear the notifications if the user's connection has been restored
     if (rerenderingType.current !== 'fetchMore' && !isLoading && isFetching && previousNextUrl !== undefined && previousNextUrl === unreadNotifications?.links.next) {
       clear();
+      console.log('reconnection - clear');
     }
   }, [clear, isLoading, isFetching, previousNextUrl, unreadNotifications]);
 
