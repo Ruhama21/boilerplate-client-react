@@ -118,7 +118,7 @@ export const useReducerInfiniteLoading = <T extends WithNumberIdentifier, Result
     console.log('nextNotificationUrl:', unreadNotifications?.links.next);
 
     // Clear the notifications if the user's connection has been restored
-    if (!isLoading && isFetching && previousNextUrl !== undefined && previousNextUrl === unreadNotifications?.links.next) {
+    if (rerenderingType.current !== 'fetchMore' && !isLoading && isFetching && previousNextUrl !== undefined && previousNextUrl === unreadNotifications?.links.next) {
       clear();
     }
   }, [clear, isLoading, isFetching, previousNextUrl, unreadNotifications]);
