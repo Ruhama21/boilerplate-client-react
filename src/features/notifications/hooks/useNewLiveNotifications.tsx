@@ -13,7 +13,7 @@ export const useNewLiveNotifications = () => {
   const { user } = useAuth();
   const dispatch = useDispatch();
 
-  const { notifications, count, hasMore, getMore, isFetching, isLoading, refetch, clear, add, remove } = useReducerInfiniteLoading<AppNotification, PaginatedResult<AppNotification>>(null, useGetUnreadNotificationsQuery, notificationApi.util.resetApiState, { skip: !user });
+  const { items, count, hasMore, getMore, isFetching, isLoading, refetch, clear, add, remove } = useReducerInfiniteLoading<AppNotification, PaginatedResult<AppNotification>>(null, useGetUnreadNotificationsQuery, notificationApi.util.resetApiState, { skip: !user });
 
   const [enablePolling, setEnablePolling] = useState(true);
   const { data: eventToken } = useGetEventTokenQuery(undefined, {
@@ -71,7 +71,7 @@ export const useNewLiveNotifications = () => {
 
   const notificationProviderValue = useMemo(() => {
     const result = {
-        notifications,
+        notifications: items,
         count,
         hasMore,
         isFetching,
@@ -81,7 +81,7 @@ export const useNewLiveNotifications = () => {
         getMore
     };
     return result;
-  }, [clear, remove, getMore, hasMore, notifications, count, isFetching, isLoading]);
+  }, [clear, remove, getMore, hasMore, items, count, isFetching, isLoading]);
 
   return notificationProviderValue;
 };

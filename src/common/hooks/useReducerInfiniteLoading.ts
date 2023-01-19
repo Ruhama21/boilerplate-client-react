@@ -9,49 +9,49 @@ export interface WithNumberIdentifier {
 }
 
 interface State<T> {
-  notifications: T[];
-  oldNotifications: T[];
-  nextNotificationUrl: string | null;
+  items: T[];
+  oldItems: T[];
+  nextItemUrl: string | null;
   count: number;
 }
 
 const initialState = {
-  notifications: [] as any[],
-  oldNotifications: [] as any[],
-  nextNotificationUrl: null,
+  items: [] as any[],
+  oldItems: [] as any[],
+  nextItemUrl: null,
   count: 0,
 };
 
 type Action<T> =
-  | { type: 'add'; notification: T }
-  | { type: 'add-old'; notifications: T[]; count: number }
-  | { type: 'set-next-notification-url'; nextNotificationUrl: string | null }
-  | { type: 'remove'; notification: T }
+  | { type: 'add'; item: T }
+  | { type: 'add-old'; items: T[]; count: number }
+  | { type: 'set-next-item-url'; nextItemUrl: string | null }
+  | { type: 'remove'; item: T }
   | { type: 'reset' };
 
 const reducer = <T extends WithNumberIdentifier>(state: State<T>, action: Action<T>) => {
   switch (action.type) {
     case 'add':
-      return { ...state, notifications: [action.notification, ...state.notifications] };
+      return { ...state, items: [action.item, ...state.items] };
     case 'add-old':
-      return { ...state, oldNotifications: [...state.oldNotifications, ...action.notifications], count: action.count };
+      return { ...state, oldItems: [...state.oldItems, ...action.items], count: action.count };
     case 'remove': {
-      const notifications = state.notifications.filter(n => n.id !== action.notification.id);
-      const oldNotifications = state.oldNotifications.filter(n => n.id !== action.notification.id);
-      let numRemoved = state.notifications.length - notifications.length;
-      numRemoved += state.oldNotifications.length - oldNotifications.length;
+      const items = state.items.filter(i => i.id !== action.item.id);
+      const oldItems = state.oldItems.filter(i => i.id !== action.item.id);
+      let numRemoved = state.items.length - items.length;
+      numRemoved += state.oldItems.length - oldItems.length;
 
       return {
         ...state,
-        notifications,
-        oldNotifications,
+        items,
+        oldItems,
         count: state.count - numRemoved,
       };
     }
     case 'reset':
       return { ...initialState };
-    case 'set-next-notification-url':
-      return { ...state, nextNotificationUrl: action.nextNotificationUrl };
+    case 'set-next-item-url':
+      return { ...state, nextItemUrl: action.nextItemUrl };
     default:
       return { ...initialState };
   }
@@ -74,41 +74,41 @@ export const useReducerInfiniteLoading = <T extends WithNumberIdentifier, Result
   const dispatch = useDispatch();
   const rerenderingType = useRef<string | null>('clear');
 
-  const [{ notifications, oldNotifications, nextNotificationUrl, count }, notificationDispatch] = useReducer(reducer, {
+  const [{ items, oldItems, nextItemUrl, count }, itemDispatch] = useReducer(reducer, {
     ...initialState,
-    nextNotificationUrl: initialUrl,
+    nextItemUrl: initialUrl,
   });
-  const { data: unreadNotifications, isFetching, isLoading, refetch } = useQuery(nextNotificationUrl, options);
+  const { data: fetchedItems, isFetching, isLoading, refetch } = useQuery(nextItemUrl, options);
 
-  const previousNextUrl = usePrevious<string | null | undefined>(unreadNotifications?.links.next);
+  const previousNextUrl = usePrevious<string | null | undefined>(fetchedItems?.links.next);
 
-  const add = useCallback((newNotification: T) => {
-    notificationDispatch({ type: 'add', notification: newNotification});
-  }, [notificationDispatch]);
+  const add = useCallback((newItem: T) => {
+    itemDispatch({ type: 'add', item: newItem});
+  }, [itemDispatch]);
 
   const clear = useCallback(() => {
     rerenderingType.current = null;
-    notificationDispatch({ type: 'reset' });
-    dispatch(resetApiStateFunction()); // before - notificationApi.util.resetApiState()
-  }, [notificationDispatch, dispatch, resetApiStateFunction]);
+    itemDispatch({ type: 'reset' });
+    dispatch(resetApiStateFunction());
+  }, [itemDispatch, dispatch, resetApiStateFunction]);
 
-  const remove = useCallback((notificationToRemove: T) => {
-      notificationDispatch({ type: 'remove', notification: notificationToRemove });
+  const remove = useCallback((itemToRemove: T) => {
+      itemDispatch({ type: 'remove', item: itemToRemove });
     },
-    [notificationDispatch],
+    [itemDispatch],
   );
 
   const hasMore = useMemo(() => {
     if (isLoading || isFetching) return false;
-    return !!unreadNotifications?.links.next;
-  }, [unreadNotifications, isLoading, isFetching]);
+    return !!fetchedItems?.links.next;
+  }, [fetchedItems, isLoading, isFetching]);
 
   const getMore = useCallback(() => {
-    if (unreadNotifications?.links.next && !isFetching) {
-      rerenderingType.current = 'fetchMore';
-      notificationDispatch({ type: 'set-next-notification-url', nextNotificationUrl: unreadNotifications.links.next });
+    if (fetchedItems?.links.next && !isFetching) {
+      rerenderingType.current = 'getMore';
+      itemDispatch({ type: 'set-next-item-url', nextItemUrl: fetchedItems.links.next });
     }
-  }, [notificationDispatch, isFetching, unreadNotifications]);
+  }, [itemDispatch, isFetching, fetchedItems]);
 
   console.log('rerenderingType.current:', rerenderingType.current);
 
@@ -117,49 +117,44 @@ export const useReducerInfiniteLoading = <T extends WithNumberIdentifier, Result
     console.log('isLoading:', isLoading);
     console.log('isFetching:', isFetching);
     console.log('previousNextUrl:', previousNextUrl);
-    console.log('nextNotificationUrl:', unreadNotifications?.links.next);
+    console.log('nextItemUrl:', fetchedItems?.links.next);
 
-    // Clear the notifications if the user's connection has been restored
-    if (rerenderingType.current !== 'fetchMore' && !isLoading && isFetching && previousNextUrl !== undefined && previousNextUrl === unreadNotifications?.links.next) {
+    // Clear the items if the user's connection has been restored
+    if (rerenderingType.current !== 'getMore' && !isLoading && isFetching && previousNextUrl !== undefined && previousNextUrl === fetchedItems?.links.next) {
       clear();
       console.log('reconnection - clear');
     }
-  }, [clear, isLoading, isFetching, previousNextUrl, unreadNotifications]);
+  }, [clear, isLoading, isFetching, previousNextUrl, fetchedItems]);
 
-  // Append new notifications that we got from the API to
-  // oldNotifications list
+  // Append new items that we got from the API to
+  // oldItems list
   useEffect(() => {
     
-    notificationDispatch({
+    itemDispatch({
       type: 'add-old',
-      notifications: unreadNotifications?.results || [],
-      count: unreadNotifications?.meta.count || 0,
+      items: fetchedItems?.results || [],
+      count: fetchedItems?.meta.count || 0,
     });
 
-    console.log('unreadNotifications:', unreadNotifications?.results || []);
+    console.log('fetchedItems:', fetchedItems?.results || []);
 
     return () => {
       if (rerenderingType.current === 'clear') {
         clear();
       }
     };
-  }, [unreadNotifications, clear]);
+  }, [fetchedItems, clear]);
 
-  const notificationProviderValue = useMemo(() => {
-    const result = {
-      notifications: [...notifications, ...oldNotifications],
-      count: notifications.length + count, // I'm not so sure this is right.
-      hasMore,
-      isFetching,
-      isLoading,
-      remove,
-      clear,
-      getMore,
-      refetch,
-      add
-    };
-    return result;
-  }, [clear, remove, hasMore, getMore, add, notifications, count, oldNotifications, isFetching, isLoading, refetch]);
-
-  return notificationProviderValue;
+  return {
+    items: [...items, ...oldItems],
+    count: items.length + count, // I'm not so sure this is right.
+    hasMore,
+    isFetching,
+    isLoading,
+    remove,
+    clear,
+    getMore,
+    refetch,
+    add
+  };
 };
