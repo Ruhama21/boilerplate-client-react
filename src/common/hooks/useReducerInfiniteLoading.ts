@@ -100,10 +100,6 @@ export const useReducerInfiniteLoading = <T extends WithNumberIdentifier, Result
     }
   }, [itemDispatch, isFetching, fetchedItems]);
 
-  console.log('isLoading:', isLoading);
-  console.log('isFetching:', isFetching);
-  console.log('isGettingMore:', isGettingMore);
-
   // Clear the items when the user's internet connection is restored
   useEffect(() => {
     if (!isLoading && isFetching && !isGettingMore) {
@@ -123,16 +119,21 @@ export const useReducerInfiniteLoading = <T extends WithNumberIdentifier, Result
 
   }, [fetchedItems]);
 
-  return {
-    items: [...items, ...oldItems],
-    count: items.length + count, // I'm not so sure this is right.
-    hasMore,
-    isFetching,
-    isLoading,
-    remove,
-    clear,
-    getMore,
-    refetch,
-    add
-  };
+  const itemProviderValue = useMemo(() => {
+    const result = {
+      items: [...items, ...oldItems],
+      count: items.length + count, // I'm not so sure this is right.
+      hasMore,
+      isFetching,
+      isLoading,
+      remove,
+      clear,
+      getMore,
+      refetch,
+      add
+    };
+    return result;
+  }, [clear, remove, getMore, hasMore, items, count, isFetching, isLoading, oldItems, add, refetch]);
+
+  return itemProviderValue;
 };
