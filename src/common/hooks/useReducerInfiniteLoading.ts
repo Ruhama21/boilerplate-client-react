@@ -26,7 +26,7 @@ const initialState = {
 
 type Action<T> =
   | { type: 'add'; item: T }
-  | { type: 'add-old'; items: T[]; count: number, isGettingMore?: boolean }
+  | { type: 'add-old'; items: T[]; count: number }
   | { type: 'set-next-item-url'; nextItemUrl: string | null }
   | { type: 'reset-get-more' }
   | { type: 'remove'; item: T }
@@ -99,6 +99,10 @@ export const useReducerInfiniteLoading = <T extends WithNumberIdentifier, Result
       itemDispatch({ type: 'set-next-item-url', nextItemUrl: fetchedItems.links.next });
     }
   }, [itemDispatch, isFetching, fetchedItems]);
+
+  console.log('isLoading:', isLoading);
+  console.log('isFetching:', isFetching);
+  console.log('isGettingMore:', isGettingMore);
 
   // Clear the items when the user's internet connection is restored
   useEffect(() => {
