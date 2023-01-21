@@ -1,6 +1,6 @@
 import { ActionCreatorWithoutPayload } from '@reduxjs/toolkit';
 import { PaginatedResult } from 'common/models';
-import { useCallback, useEffect, useMemo, useReducer, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useReducer } from 'react';
 import { useDispatch } from 'react-redux';
 import { UseQuery, UseQueryOptions } from 'rtk-query-config';
 
@@ -13,6 +13,7 @@ interface State<T> {
   oldItems: T[];
   nextItemUrl: string | null;
   count: number;
+  isGettingMore: boolean;
 }
 
 const initialState = {
@@ -20,12 +21,14 @@ const initialState = {
   oldItems: [] as any[],
   nextItemUrl: null,
   count: 0,
+  isGettingMore: false,
 };
 
 type Action<T> =
   | { type: 'add'; item: T }
-  | { type: 'add-old'; items: T[]; count: number }
+  | { type: 'add-old'; items: T[]; count: number, isGettingMore?: boolean }
   | { type: 'set-next-item-url'; nextItemUrl: string | null }
+  | { type: 'reset-get-more' }
   | { type: 'remove'; item: T }
   | { type: 'reset' };
 
@@ -34,7 +37,7 @@ const reducer = <T extends WithNumberIdentifier>(state: State<T>, action: Action
     case 'add':
       return { ...state, items: [action.item, ...state.items] };
     case 'add-old':
-      return { ...state, oldItems: [...state.oldItems, ...action.items], count: action.count };
+      return { ...state, oldItems: [...state.oldItems, ...action.items], count: action.count, isGettingMore: false };
     case 'remove': {
       const items = state.items.filter(i => i.id !== action.item.id);
       const oldItems = state.oldItems.filter(i => i.id !== action.item.id);
@@ -51,19 +54,11 @@ const reducer = <T extends WithNumberIdentifier>(state: State<T>, action: Action
     case 'reset':
       return { ...initialState };
     case 'set-next-item-url':
-      return { ...state, nextItemUrl: action.nextItemUrl };
+      return { ...state, nextItemUrl: action.nextItemUrl, isGettingMore: true };
     default:
       return { ...initialState };
   }
 };
-
-const usePrevious = <T>(value: T | null) => {
-  const ref = useRef<T | null>(null);
-  useEffect(() => {
-    ref.current = value;
-  },[value]);
-  return ref.current;
-}
 
 export const useReducerInfiniteLoading = <T extends WithNumberIdentifier, ResultType extends PaginatedResult<T>>(
   initialUrl: string | null,
@@ -72,22 +67,18 @@ export const useReducerInfiniteLoading = <T extends WithNumberIdentifier, Result
   options?: UseQueryOptions,
 ) => {
   const dispatch = useDispatch();
-  const rerenderingType = useRef<string | null>('clear');
 
-  const [{ items, oldItems, nextItemUrl, count }, itemDispatch] = useReducer(reducer, {
+  const [{ items, oldItems, nextItemUrl, count, isGettingMore }, itemDispatch] = useReducer(reducer, {
     ...initialState,
     nextItemUrl: initialUrl,
   });
   const { data: fetchedItems, isFetching, isLoading, refetch } = useQuery(nextItemUrl, options);
-
-  const previousNextUrl = usePrevious<string | null | undefined>(fetchedItems?.links.next);
 
   const add = useCallback((newItem: T) => {
     itemDispatch({ type: 'add', item: newItem});
   }, [itemDispatch]);
 
   const clear = useCallback(() => {
-    rerenderingType.current = null;
     itemDispatch({ type: 'reset' });
     dispatch(resetApiStateFunction());
   }, [itemDispatch, dispatch, resetApiStateFunction]);
@@ -105,45 +96,28 @@ export const useReducerInfiniteLoading = <T extends WithNumberIdentifier, Result
 
   const getMore = useCallback(() => {
     if (fetchedItems?.links.next && !isFetching) {
-      rerenderingType.current = 'getMore';
       itemDispatch({ type: 'set-next-item-url', nextItemUrl: fetchedItems.links.next });
     }
   }, [itemDispatch, isFetching, fetchedItems]);
 
-  console.log('rerenderingType.current:', rerenderingType.current);
-
+  // Clear the items when the user's internet connection is restored
   useEffect(() => {
-
-    console.log('isLoading:', isLoading);
-    console.log('isFetching:', isFetching);
-    console.log('previousNextUrl:', previousNextUrl);
-    console.log('nextItemUrl:', fetchedItems?.links.next);
-
-    // Clear the items if the user's connection has been restored
-    if (rerenderingType.current !== 'getMore' && !isLoading && isFetching && previousNextUrl !== undefined && previousNextUrl === fetchedItems?.links.next) {
+    if (!isLoading && isFetching && !isGettingMore) {
       clear();
-      console.log('reconnection - clear');
     }
-  }, [clear, isLoading, isFetching, previousNextUrl, fetchedItems]);
+  }, [isLoading, isFetching, isGettingMore, clear]);
 
   // Append new items that we got from the API to
   // oldItems list
   useEffect(() => {
-    
+
     itemDispatch({
       type: 'add-old',
       items: fetchedItems?.results || [],
       count: fetchedItems?.meta.count || 0,
     });
 
-    console.log('fetchedItems:', fetchedItems?.results || []);
-
-    return () => {
-      if (rerenderingType.current === 'clear') {
-        clear();
-      }
-    };
-  }, [fetchedItems, clear]);
+  }, [fetchedItems]);
 
   return {
     items: [...items, ...oldItems],
