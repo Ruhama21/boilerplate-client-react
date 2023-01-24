@@ -45,7 +45,6 @@ export const UpdateAgentView: FC = () => {
   } = useReducerInfiniteLoading<HistoricalRecord<User> & WithNumberIdentifier, PaginatedResult<HistoricalRecord<User>>>(
     url,
     useGetAgentHistoryQuery,
-    agentApi.util.resetApiState,
     { skip: user?.role !== 'ADMIN' },
   );
 

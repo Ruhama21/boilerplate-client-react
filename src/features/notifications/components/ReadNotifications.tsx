@@ -13,7 +13,7 @@ export const ReadNotifications: FC = () => {
     isFetching,
     hasMore,
     getMore,
-  } = useReducerInfiniteLoading<AppNotification, PaginatedResult<AppNotification>>('', useGetReadNotificationsQuery, notificationApi.util.resetApiState);
+  } = useReducerInfiniteLoading<AppNotification, PaginatedResult<AppNotification>>('', useGetReadNotificationsQuery);
 
   return (
     <>

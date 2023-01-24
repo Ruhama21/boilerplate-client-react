@@ -45,7 +45,7 @@ export const UpdateUserView: FC = () => {
     count: totalCount,
     hasMore,
     getMore,
-  } = useReducerInfiniteLoading<HistoricalRecord<User> & WithNumberIdentifier, PaginatedResult<HistoricalRecord<User>>>(url, useGetUserHistoryQuery, userApi.util.resetApiState, {
+  } = useReducerInfiniteLoading<HistoricalRecord<User> & WithNumberIdentifier, PaginatedResult<HistoricalRecord<User>>>(url, useGetUserHistoryQuery, {
     skip: loggedInUser?.role !== 'ADMIN',
   });
 
