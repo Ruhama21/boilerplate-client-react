@@ -5,7 +5,7 @@ import { useDispatch } from 'react-redux';
 import { UseQuery, UseQueryOptions } from 'rtk-query-config';
 
 export interface WithNumberIdentifier {
-  id: number;
+  id?: number;
 }
 
 interface State<T> {
@@ -17,8 +17,8 @@ interface State<T> {
 }
 
 const initialState = {
-  items: [] as any[],
-  oldItems: [] as any[],
+  items: [],
+  oldItems: [],
   nextItemUrl: null,
   count: 0,
   isGettingMore: false,
@@ -72,10 +72,10 @@ export const useReducerInfiniteLoading = <T extends WithNumberIdentifier, Result
     ...initialState,
     nextItemUrl: initialUrl,
   });
-  const { data: fetchedItems, isFetching, isLoading, refetch } = useQuery(nextItemUrl, options);
+  const { data: fetchedItems, isFetching, isLoading, refetch, error } = useQuery(nextItemUrl, options);
 
   const add = useCallback((newItem: T) => {
-    itemDispatch({ type: 'add', item: newItem});
+    itemDispatch({ type: 'add', item: newItem });
   }, [itemDispatch]);
 
   const clear = useCallback(() => {
@@ -84,8 +84,8 @@ export const useReducerInfiniteLoading = <T extends WithNumberIdentifier, Result
   }, [itemDispatch, dispatch, resetApiStateFunction]);
 
   const remove = useCallback((itemToRemove: T) => {
-      itemDispatch({ type: 'remove', item: itemToRemove });
-    },
+    itemDispatch({ type: 'remove', item: itemToRemove });
+  },
     [itemDispatch],
   );
 
@@ -121,7 +121,7 @@ export const useReducerInfiniteLoading = <T extends WithNumberIdentifier, Result
 
   const itemProviderValue = useMemo(() => {
     const result = {
-      items: [...items, ...oldItems],
+      items: [...items, ...oldItems] as T[],
       count: items.length + count, // I'm not so sure this is right.
       hasMore,
       isFetching,
@@ -130,7 +130,8 @@ export const useReducerInfiniteLoading = <T extends WithNumberIdentifier, Result
       clear,
       getMore,
       refetch,
-      add
+      add,
+      error
     };
     return result;
   }, [clear, remove, getMore, hasMore, items, count, isFetching, isLoading, oldItems, add, refetch]);
