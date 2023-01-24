@@ -30,7 +30,7 @@ type Action<T> =
   | { type: 'set-next-item-url'; nextItemUrl: string | null }
   | { type: 'reset-get-more' }
   | { type: 'remove'; item: T }
-  | { type: 'reset' };
+  | { type: 'reset'; nextItemUrl: string | null };
 
 const reducer = <T extends WithNumberIdentifier>(state: State<T>, action: Action<T>) => {
   switch (action.type) {
@@ -52,7 +52,7 @@ const reducer = <T extends WithNumberIdentifier>(state: State<T>, action: Action
       };
     }
     case 'reset':
-      return { ...initialState };
+      return { ...initialState, nextItemUrl: action.nextItemUrl };
     case 'set-next-item-url':
       return { ...state, nextItemUrl: action.nextItemUrl, isGettingMore: true };
     default:
@@ -79,9 +79,9 @@ export const useReducerInfiniteLoading = <T extends WithNumberIdentifier, Result
   }, [itemDispatch]);
 
   const clear = useCallback(() => {
-    itemDispatch({ type: 'reset' });
+    itemDispatch({ type: 'reset', nextItemUrl: initialUrl });
     dispatch(resetApiStateFunction());
-  }, [itemDispatch, dispatch, resetApiStateFunction]);
+  }, [itemDispatch, dispatch, resetApiStateFunction, initialUrl]);
 
   const remove = useCallback((itemToRemove: T) => {
     itemDispatch({ type: 'remove', item: itemToRemove });
