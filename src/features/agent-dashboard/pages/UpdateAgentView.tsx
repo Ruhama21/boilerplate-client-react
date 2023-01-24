@@ -1,5 +1,5 @@
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { agentApi, useGetAgentByIdQuery, useGetAgentHistoryQuery, useUpdateAgentMutation } from 'common/api/agentApi';
+import { useGetAgentByIdQuery, useGetAgentHistoryQuery, useUpdateAgentMutation } from 'common/api/agentApi';
 import { isFetchBaseQueryError } from 'common/api/handleApiError';
 import { WithLoadingOverlay } from 'common/components/LoadingSpinner';
 import { isObject } from 'common/error/utilities';
@@ -7,7 +7,7 @@ import { PaginatedResult, ServerValidationErrors, User } from 'common/models';
 import * as notificationService from 'common/services/notification';
 import { Card, Modal } from 'react-bootstrap';
 import { PageCrumb, PageHeader, SmallContainer } from 'common/styles/page';
-import { FC, useEffect, useMemo, useState } from 'react';
+import { FC, useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { AgentDetailForm, FormData } from '../components/AgentDetailForm';
 import { useAuth } from 'features/auth/hooks';
@@ -44,7 +44,7 @@ export const UpdateAgentView: FC = () => {
     getMore,
   } = useReducerInfiniteLoading<HistoricalRecord<User> & WithNumberIdentifier, PaginatedResult<HistoricalRecord<User>>>(
     url,
-    useGetAgentHistoryQuery,
+    useGetAgentHistoryQuery, undefined,
     { skip: user?.role !== 'ADMIN' },
   );
 

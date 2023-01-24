@@ -1,3 +1,4 @@
+import { ActionCreatorWithoutPayload } from '@reduxjs/toolkit';
 import { PaginatedResult } from 'common/models';
 import { useCallback, useEffect, useMemo, useReducer } from 'react';
 import { useDispatch } from 'react-redux';
@@ -62,12 +63,15 @@ const reducer = <T extends WithNumberIdentifier>(state: State<T>, action: Action
 export const useReducerInfiniteLoading = <T extends WithNumberIdentifier, ResultType extends PaginatedResult<T>>(
   initialUrl: string | null,
   useQuery: UseQuery<ResultType>,
+  resetApiStateFunction?: ActionCreatorWithoutPayload,
   options?: UseQueryOptions,
 ) => {
   const [{ items, oldItems, nextItemUrl, count, isGettingMore }, itemDispatch] = useReducer(reducer, {
     ...initialState,
     nextItemUrl: initialUrl,
   });
+  const dispatch = useDispatch();
+
   const { data: fetchedItems, isFetching, isLoading, refetch, error } = useQuery(nextItemUrl, options);
 
   const add = useCallback((newItem: T) => {
@@ -76,7 +80,10 @@ export const useReducerInfiniteLoading = <T extends WithNumberIdentifier, Result
 
   const clear = useCallback(() => {
     itemDispatch({ type: 'reset', nextItemUrl: initialUrl });
-  }, [itemDispatch, initialUrl]);
+    if (resetApiStateFunction) {
+      dispatch(resetApiStateFunction());
+    }
+  }, [itemDispatch, initialUrl, dispatch, resetApiStateFunction]);
 
   const remove = useCallback((itemToRemove: T) => {
     itemDispatch({ type: 'remove', item: itemToRemove });

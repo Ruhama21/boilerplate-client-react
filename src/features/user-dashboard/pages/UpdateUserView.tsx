@@ -1,6 +1,6 @@
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { isFetchBaseQueryError } from 'common/api/handleApiError';
-import { useGetUserByIdQuery, useGetUserHistoryQuery, userApi, useUpdateUserMutation } from 'common/api/userApi';
+import { useGetUserByIdQuery, useGetUserHistoryQuery, useUpdateUserMutation } from 'common/api/userApi';
 import { WithLoadingOverlay } from 'common/components/LoadingSpinner';
 import { isObject } from 'common/error/utilities';
 import { PaginatedResult, Role, ServerValidationErrors, User } from 'common/models';
@@ -45,7 +45,7 @@ export const UpdateUserView: FC = () => {
     count: totalCount,
     hasMore,
     getMore,
-  } = useReducerInfiniteLoading<HistoricalRecord<User> & WithNumberIdentifier, PaginatedResult<HistoricalRecord<User>>>(url, useGetUserHistoryQuery, {
+  } = useReducerInfiniteLoading<HistoricalRecord<User> & WithNumberIdentifier, PaginatedResult<HistoricalRecord<User>>>(url, useGetUserHistoryQuery, undefined, {
     skip: loggedInUser?.role !== 'ADMIN',
   });
 

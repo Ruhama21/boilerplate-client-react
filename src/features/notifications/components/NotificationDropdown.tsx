@@ -8,7 +8,6 @@ import { useNavigate } from 'react-router-dom';
 import { LoadingButton } from 'common/components/LoadingButton';
 import { faBell } from '@fortawesome/free-solid-svg-icons';
 import { NoContent } from 'common/styles/utilities';
-import { useDispatch } from 'react-redux';
 import { AppNotification } from 'common/models/notifications';
 import { useInfiniteLoading } from 'common/hooks/useInfiniteLoading';
 import { PaginatedResult } from 'common/models';
@@ -154,7 +153,7 @@ export const NotificationDropdown: FC<Props> = ({ onClose }) => {
     items: readNotifications,
     isLoading: isLoadingReadNotifications,
     hasMore: hasMoreReadNotifications,
-  } = useReducerInfiniteLoading<AppNotification, PaginatedResult<AppNotification>>('', useGetReadNotificationsQuery);
+  } = useReducerInfiniteLoading<AppNotification, PaginatedResult<AppNotification>>('', useGetReadNotificationsQuery, notificationApi.util.resetApiState);
   const [markAllRead, { isLoading: isLoadingMarkAllRead }] = useMarkAllReadMutation();
 
   const handleMarkAllRead = async () => {
