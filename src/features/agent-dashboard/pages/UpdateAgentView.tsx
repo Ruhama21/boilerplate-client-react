@@ -1,5 +1,5 @@
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { useGetAgentByIdQuery, useGetAgentHistoryQuery, useUpdateAgentMutation } from 'common/api/agentApi';
+import { agentApi, useGetAgentByIdQuery, useGetAgentHistoryQuery, useUpdateAgentMutation } from 'common/api/agentApi';
 import { isFetchBaseQueryError } from 'common/api/handleApiError';
 import { WithLoadingOverlay } from 'common/components/LoadingSpinner';
 import { isObject } from 'common/error/utilities';
@@ -7,7 +7,7 @@ import { PaginatedResult, ServerValidationErrors, User } from 'common/models';
 import * as notificationService from 'common/services/notification';
 import { Card, Modal } from 'react-bootstrap';
 import { PageCrumb, PageHeader, SmallContainer } from 'common/styles/page';
-import { FC, useEffect, useState } from 'react';
+import { FC, useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { AgentDetailForm, FormData } from '../components/AgentDetailForm';
 import { useAuth } from 'features/auth/hooks';
@@ -19,6 +19,7 @@ import { ChangeListGroup } from 'common/components/ChangeLog/ChangeListGroup';
 import { LoadingButton } from 'common/components/LoadingButton';
 import { useModal } from 'react-modal-hook';
 import { DimmableContent } from 'common/styles/utilities';
+import { useReducerInfiniteLoading, WithNumberIdentifier } from 'common/hooks/useReducerInfiniteLoading';
 
 export type RouteParams = {
   id: string;
@@ -35,15 +36,16 @@ export const UpdateAgentView: FC = () => {
   const queryParams = new QueryParamsBuilder().setPaginationParams(1, pageSize).build();
   const url = `/agents/${id}/history/?${queryParams}`;
   const {
-    loadedData: agentHistory,
+    items: agentHistory,
     error: agentHistoryError,
     isFetching: isFetchingHistory,
-    totalCount,
+    count: totalCount,
     hasMore,
-    fetchMore,
-  } = useInfiniteLoading<HistoricalRecord<User>, PaginatedResult<HistoricalRecord<User>>>(
+    getMore,
+  } = useReducerInfiniteLoading<HistoricalRecord<User> & WithNumberIdentifier, PaginatedResult<HistoricalRecord<User>>>(
     url,
     useGetAgentHistoryQuery,
+    agentApi.util.resetApiState,
     { skip: user?.role !== 'ADMIN' },
   );
 
@@ -67,7 +69,7 @@ export const UpdateAgentView: FC = () => {
                 className='action-shadow'
                 loading={isFetchingHistory}
                 variant='primary'
-                onClick={() => fetchMore()}
+                onClick={() => getMore()}
               >
                 Load More
               </LoadingButton>

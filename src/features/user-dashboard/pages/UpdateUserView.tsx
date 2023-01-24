@@ -1,6 +1,6 @@
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { isFetchBaseQueryError } from 'common/api/handleApiError';
-import { useGetUserByIdQuery, useGetUserHistoryQuery, useUpdateUserMutation } from 'common/api/userApi';
+import { useGetUserByIdQuery, useGetUserHistoryQuery, userApi, useUpdateUserMutation } from 'common/api/userApi';
 import { WithLoadingOverlay } from 'common/components/LoadingSpinner';
 import { isObject } from 'common/error/utilities';
 import { PaginatedResult, Role, ServerValidationErrors, User } from 'common/models';
@@ -21,6 +21,7 @@ import { QueryParamsBuilder } from 'common/api/queryParamsBuilder';
 import { ChangeListGroup } from 'common/components/ChangeLog/ChangeListGroup';
 import { useModal } from 'react-modal-hook';
 import { DimmableContent } from 'common/styles/utilities';
+import { useReducerInfiniteLoading, WithNumberIdentifier } from 'common/hooks/useReducerInfiniteLoading';
 
 type RouteParams = {
   id: string;
@@ -38,13 +39,13 @@ export const UpdateUserView: FC = () => {
   const queryParams = new QueryParamsBuilder().setPaginationParams(1, pageSize).build();
   const url = `/users/${id}/history/?${queryParams}`;
   const {
-    loadedData: userHistory,
+    items: userHistory,
     error: userHistoryError,
     isFetching: isFetchingHistory,
-    totalCount,
+    count: totalCount,
     hasMore,
-    fetchMore,
-  } = useInfiniteLoading<HistoricalRecord<User>, PaginatedResult<HistoricalRecord<User>>>(url, useGetUserHistoryQuery, {
+    getMore,
+  } = useReducerInfiniteLoading<HistoricalRecord<User> & WithNumberIdentifier, PaginatedResult<HistoricalRecord<User>>>(url, useGetUserHistoryQuery, userApi.util.resetApiState, {
     skip: loggedInUser?.role !== 'ADMIN',
   });
 
@@ -71,7 +72,7 @@ export const UpdateUserView: FC = () => {
                 className='action-shadow'
                 loading={isFetchingHistory}
                 variant='primary'
-                onClick={() => fetchMore()}
+                onClick={() => getMore()}
               >
                 Load More
               </LoadingButton>

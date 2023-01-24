@@ -1,7 +1,7 @@
 import { FC, useContext } from 'react';
 import { Button, CloseButton, Nav, Row, Tab } from 'react-bootstrap';
 import styled from 'styled-components';
-import { useGetReadNotificationsQuery, useMarkAllReadMutation } from 'common/api/notificationApi';
+import { notificationApi, useGetReadNotificationsQuery, useMarkAllReadMutation } from 'common/api/notificationApi';
 import { renderNotification } from './renderNotification';
 import { NotificationContext } from '../context';
 import { useNavigate } from 'react-router-dom';
@@ -12,6 +12,7 @@ import { useDispatch } from 'react-redux';
 import { AppNotification } from 'common/models/notifications';
 import { useInfiniteLoading } from 'common/hooks/useInfiniteLoading';
 import { PaginatedResult } from 'common/models';
+import { useReducerInfiniteLoading } from 'common/hooks/useReducerInfiniteLoading';
 
 const StyledContainer = styled.div`
   width: 400px;
@@ -150,10 +151,10 @@ export const NotificationDropdown: FC<Props> = ({ onClose }) => {
     clear: clearUnreadNotifications,
   } = useContext(NotificationContext);
   const {
-    loadedData: readNotifications,
+    items: readNotifications,
     isLoading: isLoadingReadNotifications,
     hasMore: hasMoreReadNotifications,
-  } = useInfiniteLoading<AppNotification, PaginatedResult<AppNotification>>('', useGetReadNotificationsQuery);
+  } = useReducerInfiniteLoading<AppNotification, PaginatedResult<AppNotification>>('', useGetReadNotificationsQuery, notificationApi.util.resetApiState);
   const [markAllRead, { isLoading: isLoadingMarkAllRead }] = useMarkAllReadMutation();
 
   const handleMarkAllRead = async () => {

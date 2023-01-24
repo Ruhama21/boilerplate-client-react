@@ -1,5 +1,6 @@
-import { useGetReadNotificationsQuery } from 'common/api/notificationApi';
+import { notificationApi, useGetReadNotificationsQuery } from 'common/api/notificationApi';
 import { useInfiniteLoading } from 'common/hooks/useInfiniteLoading';
+import { useReducerInfiniteLoading } from 'common/hooks/useReducerInfiniteLoading';
 import { PaginatedResult } from 'common/models';
 import { AppNotification } from 'common/models/notifications';
 import { FC } from 'react';
@@ -8,11 +9,11 @@ import { renderNotification } from './renderNotification';
 
 export const ReadNotifications: FC = () => {
   const {
-    loadedData: notifications,
+    items: notifications,
     isFetching,
     hasMore,
-    fetchMore,
-  } = useInfiniteLoading<AppNotification, PaginatedResult<AppNotification>>('', useGetReadNotificationsQuery);
+    getMore,
+  } = useReducerInfiniteLoading<AppNotification, PaginatedResult<AppNotification>>('', useGetReadNotificationsQuery, notificationApi.util.resetApiState);
 
   return (
     <>
@@ -25,7 +26,7 @@ export const ReadNotifications: FC = () => {
 
       {hasMore && (
         <div className='mt-3 mb-3 text-center'>
-          <Button disabled={isFetching} onClick={() => fetchMore()} variant='default'>
+          <Button disabled={isFetching} onClick={() => getMore()} variant='default'>
             Load More
           </Button>
         </div>
