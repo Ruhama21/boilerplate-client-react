@@ -134,7 +134,7 @@ export const useReducerInfiniteLoading = <T extends WithNumberIdentifier, Result
       error
     };
     return result;
-  }, [clear, remove, getMore, hasMore, items, count, isFetching, isLoading, oldItems, add, refetch]);
+  }, [clear, remove, getMore, hasMore, items, count, isFetching, isLoading, oldItems, add, refetch, error]);
 
   return itemProviderValue;
 };
