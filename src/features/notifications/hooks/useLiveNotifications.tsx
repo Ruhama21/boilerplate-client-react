@@ -42,7 +42,6 @@ export const useLiveNotifications = () => {
 
       eventSource.onmessage = message => {
         const payload = JSON.parse(message.data);
-        // notificationDispatch({ type: 'add', notification: payload });
         add(payload);
 
         // Grab the component for the notification type
