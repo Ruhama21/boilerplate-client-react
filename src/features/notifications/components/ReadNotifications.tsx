@@ -1,6 +1,5 @@
 import { notificationApi, useGetReadNotificationsQuery } from 'common/api/notificationApi';
 import { useInfiniteLoading } from 'common/hooks/useInfiniteLoading';
-import { useReducerInfiniteLoading } from 'common/hooks/useReducerInfiniteLoading';
 import { PaginatedResult } from 'common/models';
 import { AppNotification } from 'common/models/notifications';
 import { FC } from 'react';
@@ -13,7 +12,11 @@ export const ReadNotifications: FC = () => {
     isFetching,
     hasMore,
     getMore,
-  } = useReducerInfiniteLoading<AppNotification, PaginatedResult<AppNotification>>('', useGetReadNotificationsQuery, notificationApi.util.resetApiState);
+  } = useInfiniteLoading<AppNotification, PaginatedResult<AppNotification>>(
+    '',
+    useGetReadNotificationsQuery,
+    notificationApi.util.resetApiState,
+  );
 
   return (
     <>

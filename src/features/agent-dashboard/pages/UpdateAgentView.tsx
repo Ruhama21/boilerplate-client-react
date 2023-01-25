@@ -12,14 +12,13 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { AgentDetailForm, FormData } from '../components/AgentDetailForm';
 import { useAuth } from 'features/auth/hooks';
 import { ChangeLog } from 'common/components/ChangeLog/ChangeLog';
-import { useInfiniteLoading } from 'common/hooks/useInfiniteLoading';
 import { QueryParamsBuilder } from 'common/api/queryParamsBuilder';
 import { HistoricalRecord } from 'common/models/historicalRecord';
 import { ChangeListGroup } from 'common/components/ChangeLog/ChangeListGroup';
 import { LoadingButton } from 'common/components/LoadingButton';
 import { useModal } from 'react-modal-hook';
 import { DimmableContent } from 'common/styles/utilities';
-import { useReducerInfiniteLoading, WithNumberIdentifier } from 'common/hooks/useReducerInfiniteLoading';
+import { WithNumberIdentifier, useInfiniteLoading } from 'common/hooks/useInfiniteLoading';
 
 export type RouteParams = {
   id: string;
@@ -42,9 +41,10 @@ export const UpdateAgentView: FC = () => {
     count: totalCount,
     hasMore,
     getMore,
-  } = useReducerInfiniteLoading<HistoricalRecord<User> & WithNumberIdentifier, PaginatedResult<HistoricalRecord<User>>>(
+  } = useInfiniteLoading<HistoricalRecord<User> & WithNumberIdentifier, PaginatedResult<HistoricalRecord<User>>>(
     url,
-    useGetAgentHistoryQuery, undefined,
+    useGetAgentHistoryQuery,
+    undefined,
     { skip: user?.role !== 'ADMIN' },
   );
 

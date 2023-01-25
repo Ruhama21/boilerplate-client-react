@@ -11,7 +11,6 @@ import { NoContent } from 'common/styles/utilities';
 import { AppNotification } from 'common/models/notifications';
 import { useInfiniteLoading } from 'common/hooks/useInfiniteLoading';
 import { PaginatedResult } from 'common/models';
-import { useReducerInfiniteLoading } from 'common/hooks/useReducerInfiniteLoading';
 
 const StyledContainer = styled.div`
   width: 400px;
@@ -153,7 +152,11 @@ export const NotificationDropdown: FC<Props> = ({ onClose }) => {
     items: readNotifications,
     isLoading: isLoadingReadNotifications,
     hasMore: hasMoreReadNotifications,
-  } = useReducerInfiniteLoading<AppNotification, PaginatedResult<AppNotification>>('', useGetReadNotificationsQuery, notificationApi.util.resetApiState);
+  } = useInfiniteLoading<AppNotification, PaginatedResult<AppNotification>>(
+    '',
+    useGetReadNotificationsQuery,
+    notificationApi.util.resetApiState,
+  );
   const [markAllRead, { isLoading: isLoadingMarkAllRead }] = useMarkAllReadMutation();
 
   const handleMarkAllRead = async () => {

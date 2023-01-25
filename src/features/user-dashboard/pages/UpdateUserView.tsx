@@ -15,13 +15,12 @@ import { Trans } from 'react-i18next';
 import { ChangeLog } from 'common/components/ChangeLog/ChangeLog';
 import { useAuth } from 'features/auth/hooks';
 import { LoadingButton } from 'common/components/LoadingButton';
-import { useInfiniteLoading } from 'common/hooks/useInfiniteLoading';
+import { useInfiniteLoading , WithNumberIdentifier } from 'common/hooks/useInfiniteLoading';
 import { HistoricalRecord } from 'common/models/historicalRecord';
 import { QueryParamsBuilder } from 'common/api/queryParamsBuilder';
 import { ChangeListGroup } from 'common/components/ChangeLog/ChangeListGroup';
 import { useModal } from 'react-modal-hook';
 import { DimmableContent } from 'common/styles/utilities';
-import { useReducerInfiniteLoading, WithNumberIdentifier } from 'common/hooks/useReducerInfiniteLoading';
 
 type RouteParams = {
   id: string;
@@ -45,9 +44,14 @@ export const UpdateUserView: FC = () => {
     count: totalCount,
     hasMore,
     getMore,
-  } = useReducerInfiniteLoading<HistoricalRecord<User> & WithNumberIdentifier, PaginatedResult<HistoricalRecord<User>>>(url, useGetUserHistoryQuery, undefined, {
-    skip: loggedInUser?.role !== 'ADMIN',
-  });
+  } = useInfiniteLoading<HistoricalRecord<User> & WithNumberIdentifier, PaginatedResult<HistoricalRecord<User>>>(
+    url,
+    useGetUserHistoryQuery,
+    undefined,
+    {
+      skip: loggedInUser?.role !== 'ADMIN',
+    },
+  );
 
   const roles = Object.values(Role);
 

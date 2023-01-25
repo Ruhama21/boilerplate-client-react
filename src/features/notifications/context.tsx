@@ -1,7 +1,6 @@
 import { AppNotification } from 'common/models/notifications';
 import { createContext, FC, PropsWithChildren } from 'react';
 import { useLiveNotifications } from './hooks/useLiveNotifications';
-import { useNewLiveNotifications } from './hooks/useNewLiveNotifications';
 
 export const NotificationContext = createContext<{
   notifications: AppNotification[];
@@ -27,8 +26,7 @@ export const NotificationContext = createContext<{
 });
 
 export const NotificationsProvider: FC<PropsWithChildren<unknown>> = ({ children }) => {
-  // const notificationProviderValue = useLiveNotifications();
-  const notificationProviderValue = useNewLiveNotifications();
+  const notificationProviderValue = useLiveNotifications();
 
   return <NotificationContext.Provider value={notificationProviderValue}>{children}</NotificationContext.Provider>;
 };
