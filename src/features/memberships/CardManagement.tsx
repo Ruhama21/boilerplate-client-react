@@ -127,7 +127,7 @@ export const CardManagement: FC<{
           await removeCardFromWallet(paymentMethod.id).unwrap();
           refetch();
         } catch (e) {
-          // TODO: handle errors
+          showErrorMessage('Could not remove card.');
         } finally {
           hideRemoveCardModal();
         }
