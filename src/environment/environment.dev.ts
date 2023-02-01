@@ -6,6 +6,7 @@ const apiHost = 'localhost';
 export const environment: IEnvironment = {
   apiHost,
   apiRoute: `http://${apiHost}:8000`,
+  clientUrl: 'http://localhost:4200',
   environment: EnvironmentConfiguration.Development,
   isProduction: process.env.NODE_ENV === 'production',
   name: packageJson.name,

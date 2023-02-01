@@ -75,22 +75,30 @@ export const paymentApi = createApi({
 
   endpoints: builder => ({
     getPlans: builder.query<Plan[], void>({
-      query: () => '/plans/',
+      query: () => '/payments/plans/',
       providesTags: ['Payment'],
     }),
 
     getPlanById: builder.query<Plan, string>({
-      query: id => ({ url: `/plans/${id}/` }),
+      query: id => ({ url: `/payments/plans/${id}/` }),
       providesTags: ['Payment'],
     }),
 
     getMySubscription: builder.query<Subscription, void>({
-      query: () => '/subscriptions/',
+      query: () => '/payments/subscriptions/',
     }),
 
-    createSubscription: builder.mutation<{ clientSecret: string; subscription_id: string }, string>({
+    confirmSetupIntent: builder.query<{ status: string; id: string }, string>({
+      query: (id: string) => `/payments/setup-intent/${id}/`,
+    }),
+
+    getSubscription: builder.query<{ status: string; id: string }, string>({
+      query: (id: string) => `/payments/subscriptions/${id}/`,
+    }),
+
+    createSubscription: builder.mutation<{ clientSecret: string; subscriptionId: string }, string>({
       query: priceId => ({
-        url: '/subscriptions/',
+        url: '/payments/subscriptions/',
         method: 'POST',
         body: { priceId },
       }),
@@ -99,7 +107,7 @@ export const paymentApi = createApi({
     cancelActiveSubscription: builder.mutation<Subscription, void>({
       query: () => {
         return {
-          url: `/subscriptions/cancel/`,
+          url: `/payments/subscriptions/cancel/`,
           method: 'POST',
         };
       },
@@ -108,29 +116,29 @@ export const paymentApi = createApi({
     reactivateSubscription: builder.mutation<Subscription, void>({
       query: () => {
         return {
-          url: `/subscriptions/reactivate/`,
+          url: `/payments/subscriptions/reactivate/`,
           method: 'POST',
         };
       },
     }),
 
-    addCardToWallet: builder.mutation<{ clientSecret: string }, void>({
+    addCardToWallet: builder.mutation<{ clientSecret: string; setupIntentId: string }, void>({
       query: () => ({
-        url: '/payment_methods/',
+        url: '/payments/payment_methods/',
         method: 'POST',
       }),
     }),
 
     removeCardFromWallet: builder.mutation<void, string>({
       query: id => ({
-        url: `/payment_methods/${id}/`,
+        url: `/payments/payment_methods/${id}/`,
         method: 'DELETE',
       }),
     }),
 
     makeCardDefault: builder.mutation<void, string>({
       query: id => ({
-        url: `/payment_methods/${id}/make_default/`,
+        url: `/payments/payment_methods/${id}/make_default/`,
         method: 'POST',
       }),
     }),
@@ -142,9 +150,11 @@ export const {
   useGetPlanByIdQuery,
   useCreateSubscriptionMutation,
   useGetMySubscriptionQuery,
+  useGetSubscriptionQuery,
   useCancelActiveSubscriptionMutation,
   useReactivateSubscriptionMutation,
   useAddCardToWalletMutation,
   useRemoveCardFromWalletMutation,
   useMakeCardDefaultMutation,
+  useConfirmSetupIntentQuery,
 } = paymentApi;

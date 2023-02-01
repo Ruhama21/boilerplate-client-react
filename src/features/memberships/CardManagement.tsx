@@ -12,9 +12,11 @@ import {
 import { LoadingButton } from 'common/components/LoadingButton';
 import { SimpleConfirmModal } from 'common/components/SimpleConfirmModal';
 import { useModalWithData } from 'common/hooks/useModalWithData';
-import { useAuth } from 'features/auth/hooks';
-import { FC, useState } from 'react';
+import { showErrorMessage } from 'common/services/notification';
+import { environment } from 'environment';
+import { FC, FormEvent, useState } from 'react';
 import { Card, Dropdown, DropdownButton, Modal } from 'react-bootstrap';
+import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 
 const CreditCard = styled.div`
@@ -46,29 +48,33 @@ const CreditCard = styled.div`
 `;
 
 const CardManagementInner: FC<{
-  onSuccess: () => void;
-}> = ({ onSuccess }) => {
+  setupIntentId: string;
+}> = ({ setupIntentId }) => {
   const stripe = useStripe();
   const elements = useElements();
-  const { user } = useAuth();
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   if (!stripe || !elements) return <></>;
 
-  const onAdd = async () => {
+  const onAdd = async (event: FormEvent) => {
+    event.preventDefault();
     setLoading(true);
     const result = await stripe.confirmSetup({
       elements,
       confirmParams: {
-        return_url: `http://localhost:4200/user/profile/${user?.id}?tab=subscription`,
+        return_url: `${environment.clientUrl}/payment_methods/${setupIntentId}/confirm`,
       },
       redirect: 'if_required',
     });
-    // TODO(justin): handle errors here.
 
     setLoading(false);
 
-    if (!result.error) onSuccess();
+    if (result.error) {
+      showErrorMessage('Something went wrong.');
+    } else {
+      navigate(`payment_methods/${setupIntentId}/confirm`);
+    }
   };
 
   return (
@@ -95,26 +101,24 @@ export const CardManagement: FC<{
   const [removeCardFromWallet] = useRemoveCardFromWalletMutation();
   const [makeCardDefault] = useMakeCardDefaultMutation();
 
-  const [showAddCardModal, hideAddCardModal] = useModalWithData<string>(clientSecret => {
-    return ({ in: open, onExited }) => {
-      const onSuccess = () => {
-        hideAddCardModal();
-        refetch();
+  const [showAddCardModal, hideAddCardModal] = useModalWithData<{ clientSecret: string; setupIntentId: string }>(
+    ({ clientSecret, setupIntentId }) => {
+      return ({ in: open, onExited }) => {
+        return (
+          <Modal show={open} onHide={hideAddCardModal} onExited={onExited}>
+            <Modal.Header closeButton>
+              <Modal.Title>Add a New Card</Modal.Title>
+            </Modal.Header>
+
+            <Elements stripe={stripePromise} options={{ clientSecret }}>
+              <CardManagementInner setupIntentId={setupIntentId} />
+            </Elements>
+          </Modal>
+        );
       };
-
-      return (
-        <Modal show={open} onHide={hideAddCardModal} onExited={onExited}>
-          <Modal.Header closeButton>
-            <Modal.Title>Add a New Card</Modal.Title>
-          </Modal.Header>
-
-          <Elements stripe={stripePromise} options={{ clientSecret }}>
-            <CardManagementInner onSuccess={onSuccess} />
-          </Elements>
-        </Modal>
-      );
-    };
-  }, []);
+    },
+    [],
+  );
 
   const [showRemoveCardModal, hideRemoveCardModal] = useModalWithData<PaymentMethod>(paymentMethod => {
     return ({ in: open, onExited }) => {
@@ -151,7 +155,7 @@ export const CardManagement: FC<{
 
   const addCard = async () => {
     const data = await addCardToWallet().unwrap();
-    showAddCardModal(data.clientSecret);
+    showAddCardModal({ clientSecret: data.clientSecret, setupIntentId: data.setupIntentId });
   };
 
   const makeDefault = async (paymentMethod: PaymentMethod) => {

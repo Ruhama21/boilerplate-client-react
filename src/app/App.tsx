@@ -21,6 +21,8 @@ import dark from 'themes/dark';
 import light from 'themes/light';
 import { GlobalStyle } from '../GlobalStyle';
 import { Stripe, loadStripe } from '@stripe/stripe-js';
+import { ConfirmSubscription } from 'features/memberships/ConfirmSubscription';
+import { ConfirmSetupIntent } from 'features/memberships/ConfirmSetupIntent';
 
 export const stripePromise: Promise<Stripe | null> = loadStripe(
   'pk_test_51LKnI7LBoYuqAVlJCiBaRj3JGO7ud4yqqxSwwaG94okOq4jB3hUQkEwR9eFJYIEvSWewbK9eZhN95gxiuy7bujHA00c47wfziI',
@@ -102,6 +104,29 @@ export const App: FC = () => {
                         </RequireAuth>
                       }
                     />
+
+                    <Route
+                      path='/payment_methods/:id/confirm/'
+                      element={
+                        <RequireAuth>
+                          <Layout>
+                            <ConfirmSetupIntent />
+                          </Layout>
+                        </RequireAuth>
+                      }
+                    />
+
+                    <Route
+                      path='/subscriptions/:id/confirm/'
+                      element={
+                        <RequireAuth>
+                          <Layout>
+                            <ConfirmSubscription />
+                          </Layout>
+                        </RequireAuth>
+                      }
+                    />
+
                     <Route
                       path='/notifications/*'
                       element={

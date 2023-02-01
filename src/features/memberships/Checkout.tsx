@@ -2,12 +2,13 @@ import { Plan, useCreateSubscriptionMutation, useGetPlansQuery } from 'common/ap
 import { WithLoadingOverlay } from 'common/components/LoadingSpinner';
 import { Button, Form } from 'react-bootstrap';
 import styled from 'styled-components';
-import { FC, useEffect, useState } from 'react';
+import { FC, FormEvent, useCallback, useEffect, useState } from 'react';
 import { Elements, PaymentElement, useElements, useStripe } from '@stripe/react-stripe-js';
-import { useAuth } from 'features/auth/hooks';
-import { showErrorMessage, showSuccessMessage } from 'common/services/notification';
+import { showErrorMessage } from 'common/services/notification';
 import { LoadingButton } from 'common/components/LoadingButton';
 import { stripePromise } from 'app/App';
+import { useNavigate } from 'react-router-dom';
+import { environment } from 'environment';
 
 const PlanChoice = styled.div`
   background: #efefef;
@@ -30,24 +31,26 @@ const PlanChoice = styled.div`
 
 export const PayForPlan: FC<{
   onComplete: () => void;
-}> = ({ onComplete }) => {
+  subscriptionId: string;
+}> = ({ subscriptionId }) => {
   const stripe = useStripe();
   const elements = useElements();
-  const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (event: FormEvent) => {
+    event.preventDefault();
+
     setIsLoading(true);
 
     if (!stripe || !elements) {
       return;
     }
 
-    // TODO: don't hardcode localhost:4200
     const result = await stripe.confirmPayment({
       elements,
       confirmParams: {
-        return_url: `http://localhost:4200/user/profile/${user?.id}?tab=subscription`,
+        return_url: `${environment.clientUrl}/subscriptions/${subscriptionId}/confirm`,
       },
       redirect: 'if_required',
     });
@@ -57,13 +60,12 @@ export const PayForPlan: FC<{
     if (result.error) {
       showErrorMessage('');
     } else {
-      onComplete();
-      showSuccessMessage('');
+      navigate(`subscriptions/${subscriptionId}/confirm`);
     }
   };
 
   return (
-    <form onSubmit={() => handleSubmit()}>
+    <form onSubmit={handleSubmit}>
       <PaymentElement id='payment-element' />
       <div className='mt-3 d-grid gap-2'>
         <LoadingButton loading={isLoading} size='lg' type='submit'>
@@ -75,12 +77,13 @@ export const PayForPlan: FC<{
 };
 
 export const Checkout: FC<{
-  onComplete: () => void;
+  onComplete: (id: string) => void;
 }> = ({ onComplete }) => {
   const { data: plans, isLoading } = useGetPlansQuery();
   const [selectedPlan, setSelectedPlan] = useState<Plan>();
   const [createSubscription] = useCreateSubscriptionMutation();
   const [clientSecret, setClientSecret] = useState<string | undefined>(undefined);
+  const [subscriptionId, setSubscriptionId] = useState<string>('');
 
   useEffect(() => {
     if (plans) {
@@ -90,15 +93,20 @@ export const Checkout: FC<{
 
   const onPlanSelect = async (priceId: string) => {
     const data = await createSubscription(priceId).unwrap();
-    const { clientSecret } = data;
+    const { clientSecret, subscriptionId } = data;
     setClientSecret(clientSecret);
+    setSubscriptionId(subscriptionId);
   };
+
+  const onPay = useCallback(() => {
+    onComplete(subscriptionId);
+  }, [subscriptionId, onComplete]);
 
   return (
     <>
       {clientSecret ? (
         <Elements stripe={stripePromise} options={{ clientSecret }}>
-          <PayForPlan onComplete={onComplete} />
+          <PayForPlan onComplete={onPay} subscriptionId={subscriptionId} />
         </Elements>
       ) : (
         <WithLoadingOverlay isLoading={isLoading}>

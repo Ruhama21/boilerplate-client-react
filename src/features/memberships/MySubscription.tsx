@@ -12,12 +12,6 @@ type SubscriptionStatus = null | 'active' | 'cancelled' | 'cancelled_but_active'
 export const MySubscription = () => {
   const { data: subscription, isLoading, refetch } = useGetMySubscriptionQuery();
 
-  /*
-  TODO(justin): Because of the asynchronousness of webhooks, we need to reconsider
-  how to do this refetch stuff, because it's not going to work when the webhook
-  fires after the request (which will be most cases)
-  */
-
   const status: SubscriptionStatus = useMemo(() => {
     if (subscription?.activeSubscription?.canceledAt) {
       if (moment().isBefore(subscription.activeSubscription.currentPeriodEnd)) {
