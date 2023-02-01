@@ -27,6 +27,16 @@ const CreditCard = styled.div`
   border-radius: ${props => props.theme.borderRadius};
   position: relative;
 
+  .dropdown-toggle {
+    padding: 0.5rem 0.75rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  .dropdown-toggle::after {
+    display: none;
+  }
+
   small {
     display: block;
     color: #999;
