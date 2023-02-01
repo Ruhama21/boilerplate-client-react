@@ -73,7 +73,7 @@ const CardManagementInner: FC<{
     if (result.error) {
       showErrorMessage('Something went wrong.');
     } else {
-      navigate(`payment_methods/${setupIntentId}/confirm`);
+      navigate(`/payment_methods/${setupIntentId}/confirm`);
     }
   };
 
@@ -181,7 +181,7 @@ export const CardManagement: FC<{
                 </div>
                 <div>
                   <span>
-                    •••• •••• •••• {paymentMethod.card.last4}{' '}
+                    •••• {paymentMethod.card.last4}{' '}
                     {paymentMethod.isDefault ? <Badge className='d-inline-block'>Default</Badge> : null}
                   </span>
                   <small>

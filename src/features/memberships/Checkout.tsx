@@ -60,7 +60,7 @@ export const PayForPlan: FC<{
     if (result.error) {
       showErrorMessage('');
     } else {
-      navigate(`subscriptions/${subscriptionId}/confirm`);
+      navigate(`/subscriptions/${subscriptionId}/confirm`);
     }
   };
 
