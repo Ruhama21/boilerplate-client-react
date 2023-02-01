@@ -1,4 +1,4 @@
-import { faCheckCircle, faCreditCard, faEllipsisV } from '@fortawesome/free-solid-svg-icons';
+import { faCreditCard, faEllipsisV } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Elements, PaymentElement, useElements, useStripe } from '@stripe/react-stripe-js';
 import { stripePromise } from 'app/App';
@@ -15,7 +15,7 @@ import { useModalWithData } from 'common/hooks/useModalWithData';
 import { showErrorMessage } from 'common/services/notification';
 import { environment } from 'environment';
 import { FC, FormEvent, useState } from 'react';
-import { Card, Dropdown, DropdownButton, Modal } from 'react-bootstrap';
+import { Badge, Card, Dropdown, DropdownButton, Modal } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 
@@ -78,18 +78,18 @@ const CardManagementInner: FC<{
   };
 
   return (
-    <>
+    <form onSubmit={onAdd}>
       <Modal.Body>
-        <PaymentElement />
+        <PaymentElement id='payment-element' />
       </Modal.Body>
 
       <Modal.Footer>
-        <LoadingButton onClick={onAdd} loading={loading}>
+        <LoadingButton loading={loading} type='submit'>
           <FontAwesomeIcon className='me-2' icon={faCreditCard} />
           Add
         </LoadingButton>
       </Modal.Footer>
-    </>
+    </form>
   );
 };
 
@@ -177,11 +177,13 @@ export const CardManagement: FC<{
             <CreditCard className='d-flex align-items-center' key={paymentMethod.id}>
               <div className='d-flex flex-fill align-items-center'>
                 <div className='d-flex align-items-center'>
-                  {paymentMethod.isDefault ? <FontAwesomeIcon className='me-2' icon={faCheckCircle} /> : null}
                   <img className='me-3' width={64} src={`/cards/${paymentMethod.card.brand}.png`} alt='Credit Card' />
                 </div>
                 <div>
-                  <span>•••• •••• •••• {paymentMethod.card.last4}</span>
+                  <span>
+                    •••• •••• •••• {paymentMethod.card.last4}{' '}
+                    {paymentMethod.isDefault ? <Badge className='d-inline-block'>Default</Badge> : null}
+                  </span>
                   <small>
                     {paymentMethod.card.expMonth}/{paymentMethod.card.expYear.toString().slice(2)}
                   </small>
