@@ -58,7 +58,7 @@ export const PayForPlan: FC<{
     setIsLoading(false);
 
     if (result.error) {
-      showErrorMessage('');
+      if (result.error.message) showErrorMessage(result.error.message);
     } else {
       navigate(`/subscriptions/${subscriptionId}/confirm`);
     }
