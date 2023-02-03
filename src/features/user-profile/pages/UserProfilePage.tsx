@@ -44,15 +44,11 @@ import Dropdown from 'react-bootstrap/Dropdown';
 import DropdownButton from 'react-bootstrap/DropdownButton';
 import { Trans, useTranslation } from 'react-i18next';
 import { useModal } from 'react-modal-hook';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { Constants } from 'utils/constants';
 import { UpdateUserEmailForm, UserEmailFormData } from '../components/UpdateUserEmailForm';
 import { ProfileFormData, UpdateUserProfileForm } from '../components/UpdateUserProfileForm';
-
-type RouteParams = {
-  id: string;
-};
 
 const UserProfilePictureContainer = styled.div`
   position: relative;
@@ -126,8 +122,8 @@ export const ProfileNav = styled(Nav).attrs({ className: 'flex-column' })`
 `;
 
 export const UserProfilePage: FC = () => {
-  const { id = '' } = useParams<RouteParams>();
   const { user } = useAuth();
+  const { id } = user!;
   const inputFile = useRef<HTMLInputElement>(null!);
   const [resendChangeEmailVerificationEmail, { isLoading: isResendingChangeEmail }] =
     useResendChangeEmailVerificationEmailMutation();

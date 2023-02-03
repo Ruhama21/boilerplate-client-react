@@ -2,7 +2,7 @@ import { useCancelActiveSubscriptionMutation, Subscription } from 'common/api/pa
 import { FC } from 'react';
 import { Alert, Badge, Card, Col, Row } from 'react-bootstrap';
 import Moment from 'react-moment';
-import { showSuccessMessage } from 'common/services/notification';
+import { showErrorMessage, showSuccessMessage } from 'common/services/notification';
 import { useModal } from 'react-modal-hook';
 import { SimpleConfirmModal } from 'common/components/SimpleConfirmModal';
 import { CardManagement } from './CardManagement';
@@ -16,9 +16,13 @@ export const IsActive: FC<{
 
   const [showCancelModal, hideCancelModal] = useModal(({ in: open, onExited }) => {
     const onConfirm = async () => {
-      await cancelActiveSubscription();
-      onCancel();
-      showSuccessMessage('Subscription has been cancelled. You will no longer be billed.');
+      try {
+        await cancelActiveSubscription().unwrap();
+        onCancel();
+        showSuccessMessage('Subscription has been cancelled. You will no longer be billed.');
+      } catch {
+        showErrorMessage('Could not cancel subscription, please try again later.');
+      }
     };
 
     return (
@@ -60,7 +64,7 @@ export const IsActive: FC<{
               </a>
             </div>
             <div className='mb-2'>
-              {subscription.activeSubscription.plan.product} <Badge bg='success'>Active</Badge>
+              {subscription.activeSubscription.plan.product.name} <Badge bg='success'>Active</Badge>
             </div>
             <p className='text-muted'>
               Your subscription is currently active. You will be billed ${subscription.activeSubscription.plan.amount}{' '}

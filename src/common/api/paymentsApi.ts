@@ -37,6 +37,14 @@ export interface PaymentMethod {
   };
 }
 
+export interface Product {
+  id: string;
+  name: string;
+  description: string;
+  prices: Price[];
+  metadata: object;
+}
+
 export interface Subscription {
   activeSubscription: {
     id: string;
@@ -46,7 +54,7 @@ export interface Subscription {
       id: string;
       interval: SubscriptionInterval;
       amount: string;
-      product: string;
+      product: Product;
     };
   };
 

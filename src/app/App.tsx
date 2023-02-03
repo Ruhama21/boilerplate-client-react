@@ -79,7 +79,7 @@ export const App: FC = () => {
                   <Routes>
                     <Route path='/auth/*' element={<AuthRoutes />} />
                     <Route
-                      path='/user/profile/:id'
+                      path='/user/profile'
                       element={
                         <RequireAuth>
                           <Layout>

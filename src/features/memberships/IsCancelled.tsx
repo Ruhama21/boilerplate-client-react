@@ -59,7 +59,7 @@ export const IsCancelled: FC<{
               </a>
             </div>
             <div className='mb-2'>
-              {subscription.activeSubscription.plan.product} <Badge bg='danger'>Cancelled</Badge>
+              {subscription.activeSubscription.plan.product.name} <Badge bg='danger'>Cancelled</Badge>
             </div>
             <p className='text-muted'>
               Your subscription is cancelled, but will remain active until{' '}
